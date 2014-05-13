@@ -3,6 +3,7 @@ package gui
 	import by.blooddy.crypto.image.PNGEncoder;
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.display.JPEGEncoderOptions;
 	import flash.display.Loader;
 	import flash.display.LoaderInfo;
 	import flash.events.Event;
@@ -30,11 +31,13 @@ package gui
 		public static const BT_LOAD_IMAGE:String = "Load image";
 		public static const BT_SAVE_PATH:String = "Save path";
 		public static const BT_OFFSET:String = "Set offset";
+		public static const BT_COMPRESS:String = "Set compress quality";
 		private static var _loadFile:FileReference;
 		private static var _loadFiles:FileReferenceList;
 		private static var watermark:Bitmap;
 		private static var savedPath:String = File.cacheDirectory.nativePath;
 		private static var offset:Point = new Point(0, 0);
+		private static var default_quality:int = 80;
 		public function Controller()
 		{
 		
@@ -58,9 +61,17 @@ package gui
 				case BT_OFFSET:
 					setOffset();
 					break;
+				case BT_COMPRESS:
+					setCompressQuality();
+					break;
 					
 			}
 		
+		}
+		
+		static private function setCompressQuality():void 
+		{
+			default_quality = int(View.paramOne.getText());
 		}
 		
 		static private function setOffset():void 
@@ -72,6 +83,7 @@ package gui
 		static private function savePath():void 
 		{
 			savedPath = View.paramOne.getText();
+
 		}
 		
 		static private function loadImages():void 
@@ -84,13 +96,18 @@ package gui
 		
 		static private function onLoadImages(e:Event):void 
 		{
-			var fileRef:Array = e.currentTarget.fileList as Array;
-			var file:FileReference;
-			for(var i:int = 0; i < fileRef.length; i++) {
-				file = fileRef[i];
-				file.addEventListener(Event.COMPLETE,onLoadImage);
-				file.load();
+			if (watermark != null) {
+				var fileRef:Array = e.currentTarget.fileList as Array;
+				var file:FileReference;
+				for(var i:int = 0; i < fileRef.length; i++) {
+					file = fileRef[i];
+					file.addEventListener(Event.COMPLETE,onLoadImage);
+					file.load();
+				}
+			}else {
+				View.txMsg.setText("not have watermark");
 			}
+			
 		}
 		
 		static private function onLoadImage(e:Event):void 
@@ -111,8 +128,8 @@ package gui
 			var newBitmap:BitmapData = new BitmapData(curBm.width, curBm.height);
 			newBitmap.copyPixels(curBm.bitmapData, new Rectangle(0, 0, newBitmap.width, newBitmap.height), new Point(0, 0));
 			newBitmap.copyPixels(watermark.bitmapData, new Rectangle(0, 0, watermark.width, watermark.height), new Point(offset.x, newBitmap.height - watermark.height - offset.y),null,null,true);
-			var bm:Bitmap = new Bitmap(newBitmap);
-			var buffer:ByteArray = PNGEncoder.encode(newBitmap);
+			var buffer:ByteArray = new ByteArray();
+			newBitmap.encode(new Rectangle(0,0,newBitmap.width,newBitmap.height), new flash.display.JPEGEncoderOptions(default_quality), buffer); 
 			try{
 				var file:File = new File();
 				file = file.resolvePath(savedPath + File.separator + loader.loader.name);
@@ -161,6 +178,7 @@ package gui
 		{
 			var loader:LoaderInfo = e.currentTarget as LoaderInfo;
 			watermark = loader.content as Bitmap;
+			View.txMsg.setText("Load watermark successfully");
 		}
 		
 		

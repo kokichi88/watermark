@@ -37,8 +37,8 @@ package gui
 		
 		static public var txMsg : JTextArea = new JTextArea("Message Here");
 		
-		static private var stageWidth:int = 800;
-		static private var stageHeight:int = 200;
+		static private var stageWidth:int = 1024;
+		static private var stageHeight:int = 400;
 		
 		public function View() 
 		{
@@ -67,6 +67,7 @@ package gui
 			addButton(generalPanel, Controller.onButtonPress, Controller.BT_LOAD_IMAGE);
 			addButton(generalPanel, Controller.onButtonPress, Controller.BT_SAVE_PATH);
 			addButton(generalPanel, Controller.onButtonPress, Controller.BT_OFFSET);
+			addButton(generalPanel, Controller.onButtonPress, Controller.BT_COMPRESS);
 			
 		
 			
