@@ -21,7 +21,6 @@ package
 		{
 			removeEventListener(Event.ADDED_TO_STAGE, this.onInit);
 			instance = this;
-			trace("aaa");
 			var _view:View = new View();
 			_view.init(this);
 		} // end function
