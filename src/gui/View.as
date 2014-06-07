@@ -69,6 +69,7 @@ package gui
 			addButton(generalPanel, Controller.onButtonPress, Controller.BT_OFFSET);
 			addButton(generalPanel, Controller.onButtonPress, Controller.BT_COMPRESS);
 			addButton(generalPanel, Controller.onButtonPress, Controller.BT_HMTL_LOAD);
+			addButton(generalPanel, Controller.onButtonPress, Controller.BT_PRICE);
 			
 		
 			

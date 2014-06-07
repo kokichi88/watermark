@@ -12,6 +12,7 @@ package gui
 	import flash.display.Loader;
 	import flash.display.LoaderInfo;
 	import flash.events.Event;
+	import flash.events.TimerEvent;
 	import flash.filesystem.File;
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
@@ -25,6 +26,7 @@ package gui
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
 	import flash.utils.ByteArray;
+	import flash.utils.Timer;
 	import org.aswing.event.AWEvent;
 	import org.aswing.JButton;
 	import org.aswing.util.ArrayList;
@@ -43,6 +45,7 @@ package gui
 		public static const BT_OFFSET:String = "Set offset";
 		public static const BT_COMPRESS:String = "Set compress quality";
 		public static const BT_HMTL_LOAD:String = "load html";
+		public static const BT_PRICE:String = "set price";
 		private static var _loadFile:FileReference;
 		private static var _loadFiles:FileReferenceList;
 		private static var watermark:Bitmap;
@@ -52,9 +55,18 @@ package gui
 		private static var map:HashMap = new HashMap();
 		private static var dic:HashMap = new HashMap();
 		private static var global_counter:int = 0;
+		private static var rate:int = 3550;
+		private static var extra:int = 120000;
 		public function Controller()
 		{
 			
+		}
+		
+		private static function onTimer(e:TimerEvent):void 
+		{
+			if (checkDownloadComp()) {
+				createExcel();
+			}
 		}
 		
 		public static function init():void {
@@ -72,6 +84,9 @@ package gui
 			dic.put("裤长", "Dai quan");
 			dic.put("裤口围", "Đui");
 			dic.put("小腿围", "Rong bap chan");
+			var t:Timer = new Timer(1000);
+			t.addEventListener(TimerEvent.TIMER, onTimer);
+			t.start();
 		}
 		static public function onButtonPress(e:AWEvent):void
 		{
@@ -97,9 +112,19 @@ package gui
 				case BT_HMTL_LOAD:
 					htmlLoad();
 					break;
+				case BT_PRICE:
+					setPrice();
 					
 			}
 		
+		}
+		
+		static private function setPrice():void 
+		{
+			rate = parseInt(View.paramOne.getText());
+			extra = parseInt(View.paramTwo.getText());
+			View.txMsg.setText("Rate: " + rate + "\n" + 
+								"Extra : " + extra);
 		}
 		
 		static private function htmlLoad():void 
@@ -112,6 +137,10 @@ package gui
 			
 			//var url:String = "http://item.taobao.com/item.htm?spm=a1z10.1.w5003-6411951231.70.xHugg7&id=39338349357&scene=taobao_shop";
 			var urls:Array = View.paramOne.getText().split(",");
+			//var urls:Array = ["http://item.taobao.com/item.htm?spm=a1z10.1.w5003-6411951231.70.xHugg7&id=39338349357&scene=taobao_shop",
+							//"http://item.taobao.com/item.htm?spm=a1z10.1.w5003-6411951231.3.i0hj6H&id=39321895752&scene=taobao_shop"];
+			//var urls:Array = ["http://item.taobao.com/item.htm?spm=a1z10.1.w5003-6411951231.70.xHugg7&id=39338349357&scene=taobao_shop"];
+			
 			if (urls.length > 0) {
 				for ( var i:int = 0; i < urls.length; ++i) {
 					var loader:ExUrlLoader = new ExUrlLoader();
@@ -139,7 +168,7 @@ package gui
 				row.picUrl = parsePic(rawString,sPic);
 				var sG_Config:String =  "g_config.dynamicScript(\"";
 				var url:String = parseBody(rawString, sG_Config)
-				//trace(sG_Config + ":  " + url);
+				trace(sG_Config + ":  " + url);
 				var loaderBody:ExUrlLoader = new ExUrlLoader();
 				loaderBody.dataFormat = URLLoaderDataFormat.BINARY;
 				var request:URLRequest = new URLRequest(url);
@@ -167,9 +196,6 @@ package gui
 				curBm.bitmapData.encode(new Rectangle(0,0,curBm.width,curBm.height), new flash.display.JPEGEncoderOptions(default_quality), buffer); 
 				row.picContent = buffer;
 				createFile(buffer, row.id + ".jpg");
-				if (checkDownloadComp()) {
-					createExcel();
-				}
 			}
 		}
 		
@@ -186,6 +212,9 @@ package gui
 					rawString = buffer.readMultiByte(buffer.bytesAvailable, CHAR_SET);
 					
 				}
+				// load extra image
+				processExtraImage(rawString, row, loader.url);
+				
 				// translate chinese -> vietnamese
 				var keys:Array = dic.keys();
 				var minIndx:int = int.MAX_VALUE;
@@ -204,15 +233,54 @@ package gui
 					var vnW:String = dic.getValue(chineseW);
 					temp = temp.replace(chineseW, vnW);
 				}
-				row.desc = temp;
-				if (checkDownloadComp()) {
-					createExcel();
+				var clearString:String = "&nbsp";
+				while (temp.indexOf(clearString) > -1) {
+					temp = temp.replace(clearString, "");
 				}
-				
+				row.desc = temp;
 			}
 		}
 		
-	
+		private static function processExtraImage(rawString:String, row:RowData, mainUrl:String ):void {
+			var pattern700:String = "<img align=\"absmiddle\"";
+			var startPattern700:String = "src=\"";
+			var arrPattern:Array = ["<img height=\"233\"", "<img height=\"233\"", "<img height=\"234\""];
+			var startPattern:String = "alt=\"";
+			var endPattern:String = "\"";
+			
+			var curId:int = 0;
+			if (rawString.indexOf(pattern700) > -1) {
+				row.is700Mode = true;
+				while (rawString.indexOf(pattern700) > -1) {
+					var idd1:int = rawString.indexOf(pattern700);
+					if (idd1 > -1) {
+						rawString = rawString.substr(idd1);
+					}
+					var idd2:int = rawString.indexOf(startPattern700);
+					rawString = rawString.substr(idd2 + startPattern700.length);
+					var idd3:int = rawString.indexOf(endPattern);
+					var imgUrl0:String = rawString.substr(0, idd3);
+					trace("img", imgUrl0);
+					row.loadImage(imgUrl0);
+				}
+			}else {
+				row.is700Mode = false;
+				while (rawString.indexOf(arrPattern[0]) > -1 || rawString.indexOf(arrPattern[2]) > -1) {
+					var id1:int = rawString.indexOf(arrPattern[curId]);
+					if (id1 > -1) {
+						rawString = rawString.substr(id1);
+					}
+					var id2:int = rawString.indexOf(startPattern);
+					rawString = rawString.substr(id2 + startPattern.length);
+					var id3:int = rawString.indexOf(endPattern);
+					var imgUrl:String = rawString.substr(0, id3);
+					curId = curId + 1 < arrPattern.length?curId + 1:0;
+					trace("img", imgUrl);
+					row.loadImage(imgUrl);
+				}
+			}
+			
+		}
 		
 		private static function parseBody(rawString:String, sConfig:String):String {
 			var index1:int = rawString.lastIndexOf(sConfig);
@@ -357,19 +425,27 @@ package gui
 			var sheet:Sheet = new Sheet();
 			sheet.name = global_counter.toString();
 			var values:Array = map.values();
-			sheet.resize(values.length+1, 4);
+			sheet.resize(values.length+1, 7);
 			values.sortOn("id", Array.NUMERIC); 
 			sheet.setCell(0, 0, "id");
-			sheet.setCell(0, 1, "price");
-			sheet.setCell(0, 2, "desc");
-			sheet.setCell(0, 3, "url");
+			sheet.setCell(0, 1, "price(NDT)");
+			sheet.setCell(0, 2, "rate(NDT/VND)");
+			sheet.setCell(0, 3, "extra(VND)");
+			sheet.setCell(0, 4, "vn price(VND)");
+			sheet.setCell(0, 5, "desc");
+			sheet.setCell(0, 6, "url");
 			for (var i:int = 0; i < values.length; ++i) {
 				var data:RowData = values[i];
 				sheet.setCell(i+1, 0, data.id);
 				sheet.setCell(i+1, 1, data.price);
-				sheet.setCell(i+1, 2, data.desc);
-				sheet.setCell(i+1, 3, data.picUrl);
+				sheet.setCell(i+1, 2, rate);
+				sheet.setCell(i+1, 3, extra);
+				sheet.setCell(i+1, 4, data.getVnPrice(rate,extra));
+				sheet.setCell(i+1, 5, data.desc);
+				sheet.setCell(i + 1, 6, data.picUrl);
+				data.makeImage(100);
 			}
+			map.clear();
 			var xls:ExcelFile = new ExcelFile();
 			xls.sheets.addItem(sheet);
 			var buffer:ByteArray = xls.saveToByteArray("windows-1258");
@@ -413,7 +489,7 @@ package gui
 					return false;
 				}
 			}
-			return true;
+			return map.size() > 0;
 				
 		}
 	}
