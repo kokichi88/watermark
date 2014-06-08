@@ -32,7 +32,7 @@ package ext
 		
 		public function isSetData():Boolean 
 		{
-			return picUrl != null && price != null && desc != null && picContent != null && picNeededLoad == extraPic.length;
+			return picUrl != null && price != null && desc != null && picNeededLoad == extraPic.length;
 		}
 		
 		public function getVnPrice(rate:int, extra:int): int {

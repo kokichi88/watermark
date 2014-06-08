@@ -165,7 +165,7 @@ package gui
 				var sPic:String = "pic:"
 				var rawString:String = loader.data as String;
 				row.price =  parsePrice(rawString,sPrice);
-				row.picUrl = parsePic(rawString,sPic);
+				row.picUrl = loader.url;//parsePic(rawString,sPic);
 				var sG_Config:String =  "g_config.dynamicScript(\"";
 				var url:String = parseBody(rawString, sG_Config)
 				trace(sG_Config + ":  " + url);
@@ -177,10 +177,12 @@ package gui
 				loaderBody.addEventListener(Event.COMPLETE, completeUrlBody);
 				
 				// load image
+				/*
 				var imageLoader:ExLoader = new ExLoader();
 				imageLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, onCompLoadImageFoxExport);
 				imageLoader.load(new URLRequest(row.picUrl));
 				imageLoader.refUrl = loader.url;
+				*/
 			}
 			
 		}
@@ -195,7 +197,7 @@ package gui
 				var curBm:Bitmap = loaderInfo.content as Bitmap;
 				curBm.bitmapData.encode(new Rectangle(0,0,curBm.width,curBm.height), new flash.display.JPEGEncoderOptions(default_quality), buffer); 
 				row.picContent = buffer;
-				createFile(buffer, row.id + ".jpg");
+				//createFile(buffer, row.id + ".jpg");
 			}
 		}
 		
@@ -243,6 +245,7 @@ package gui
 		
 		private static function processExtraImage(rawString:String, row:RowData, mainUrl:String ):void {
 			var pattern700:String = "<img align=\"absmiddle\"";
+			var pattern700end:String = "";
 			var startPattern700:String = "src=\"";
 			var arrPattern:Array = ["<img height=\"233\"", "<img height=\"233\"", "<img height=\"234\""];
 			var startPattern:String = "alt=\"";
