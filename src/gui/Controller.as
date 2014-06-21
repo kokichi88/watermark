@@ -1,5 +1,6 @@
 package gui
 {
+	import adobe.utils.CustomActions;
 	import by.blooddy.crypto.image.PNGEncoder;
 	import com.as3xls.xls.ExcelFile;
 	import com.as3xls.xls.Sheet;
@@ -31,6 +32,8 @@ package gui
 	import org.aswing.JButton;
 	import org.aswing.util.ArrayList;
 	import org.aswing.util.HashMap;
+	import org.groe.html.Element;
+	import org.groe.html.HtmlParser;
 	
 	/**
 	 * ...
@@ -136,10 +139,10 @@ package gui
 			map.clear();
 			
 			//var url:String = "http://item.taobao.com/item.htm?spm=a1z10.1.w5003-6411951231.70.xHugg7&id=39338349357&scene=taobao_shop";
-			var urls:Array = View.paramOne.getText().split(",");
+			//var urls:Array = View.paramOne.getText().split(",");
 			//var urls:Array = ["http://item.taobao.com/item.htm?spm=a1z10.1.w5003-6411951231.70.xHugg7&id=39338349357&scene=taobao_shop",
 							//"http://item.taobao.com/item.htm?spm=a1z10.1.w5003-6411951231.3.i0hj6H&id=39321895752&scene=taobao_shop"];
-			//var urls:Array = ["http://item.taobao.com/item.htm?spm=a1z10.1.w5003-6411951231.70.xHugg7&id=39338349357&scene=taobao_shop"];
+			var urls:Array = ["http://item.taobao.com/item.htm?spm=a1z10.4.w4004-6427366736.3.MAsvaz&id=39589934260"];
 			
 			if (urls.length > 0) {
 				for ( var i:int = 0; i < urls.length; ++i) {
@@ -250,39 +253,87 @@ package gui
 			var arrPattern:Array = ["<img height=\"233\"", "<img height=\"233\"", "<img height=\"234\""];
 			var startPattern:String = "alt=\"";
 			var endPattern:String = "\"";
+			var element:Element = HtmlParser.parse(rawString);
+			var patternKey:Array = new Array();
+			patternKey.push("align");
+			patternKey.push("height");
+			patternKey.push("height");
 			
-			var curId:int = 0;
-			if (rawString.indexOf(pattern700) > -1) {
-				row.is700Mode = true;
-				while (rawString.indexOf(pattern700) > -1) {
-					var idd1:int = rawString.indexOf(pattern700);
-					if (idd1 > -1) {
-						rawString = rawString.substr(idd1);
-					}
-					var idd2:int = rawString.indexOf(startPattern700);
-					rawString = rawString.substr(idd2 + startPattern700.length);
-					var idd3:int = rawString.indexOf(endPattern);
-					var imgUrl0:String = rawString.substr(0, idd3);
-					trace("img", imgUrl0);
-					row.loadImage(imgUrl0);
-				}
-			}else {
-				row.is700Mode = false;
-				while (rawString.indexOf(arrPattern[0]) > -1 || rawString.indexOf(arrPattern[2]) > -1) {
-					var id1:int = rawString.indexOf(arrPattern[curId]);
-					if (id1 > -1) {
-						rawString = rawString.substr(id1);
-					}
-					var id2:int = rawString.indexOf(startPattern);
-					rawString = rawString.substr(id2 + startPattern.length);
-					var id3:int = rawString.indexOf(endPattern);
-					var imgUrl:String = rawString.substr(0, id3);
-					curId = curId + 1 < arrPattern.length?curId + 1:0;
-					trace("img", imgUrl);
-					row.loadImage(imgUrl);
+			var patterValue:Array = new Array();
+			patterValue.push("absmiddle");
+			patterValue.push("233");
+			patterValue.push("234");
+			var ret:Vector.<Element> = findImgTag(element,patternKey,patterValue);
+			for ( var i:int = 0; i < ret.length; ++i) {
+				var e:Element = ret[i];
+				if (e.attributeMap.hasOwnProperty("align")) {
+					row.loadImage(e.attributeMap["src"]);
+				}else {
+					row.loadImage(e.attributeMap["alt"]);	
 				}
 			}
+
+			//var curId:int = 0;
+			//if (rawString.indexOf(pattern700) > -1) {
+				//row.is700Mode = true;
+				//while (rawString.indexOf(pattern700) > -1) {
+					//var idd1:int = rawString.indexOf(pattern700);
+					//if (idd1 > -1) {
+						//rawString = rawString.substr(idd1);
+					//}
+					//var idd2:int = rawString.indexOf(startPattern700);
+					//rawString = rawString.substr(idd2 + startPattern700.length);
+					//var idd3:int = rawString.indexOf(endPattern);
+					//var imgUrl0:String = rawString.substr(0, idd3);
+					//trace("img", imgUrl0);
+					//row.loadImage(imgUrl0);
+				//}
+			//}else {
+				//row.is700Mode = false;
+				//while (rawString.indexOf(arrPattern[0]) > -1 || rawString.indexOf(arrPattern[2]) > -1) {
+					//var id1:int = rawString.indexOf(arrPattern[curId]);
+					//if (id1 > -1) {
+						//rawString = rawString.substr(id1);
+					//}
+					//var id2:int = rawString.indexOf(startPattern);
+					//rawString = rawString.substr(id2 + startPattern.length);
+					//var id3:int = rawString.indexOf(endPattern);
+					//var imgUrl:String = rawString.substr(0, id3);
+					//curId = curId + 1 < arrPattern.length?curId + 1:0;
+					//trace("img", imgUrl);
+					//row.loadImage(imgUrl);
+				//}
+			//}
 			
+		}
+		
+		private static function findImgTag(element:Element, patternKey:Array, patternValue:Array) : Vector.<Element> {
+			var childs:Array = element.childElementArray;
+			var ret:Vector.<Element> = new Vector.<Element>();
+			if (childs != null)
+			{
+				var len:int = childs.length;
+				for (var i:int = 0; i < len; ++i) {
+					var child:Element = childs[i] as Element;
+					if (child.tagName == "img") {
+						if (child.attributeMap != null) {
+							for (var k:int = 0; k < patternKey.length;++k) {
+								var key:String = patternKey[k];
+								var value:String = patternValue[k];
+								if (child.attributeMap.hasOwnProperty(key) && child.attributeMap[key] == value) {
+									ret.push(child);
+								}
+							}
+						}
+					}else {
+						var temp:Vector.<Element> = findImgTag(child,patternKey,patternValue);
+						for (var j:int = 0; j < temp.length;++j) {
+							ret.push(temp[j]);
+						}
+					}
+				}	
+			}
+			return ret;
 		}
 		
 		private static function parseBody(rawString:String, sConfig:String):String {
