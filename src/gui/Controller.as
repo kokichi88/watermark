@@ -139,10 +139,10 @@ package gui
 			map.clear();
 			
 			//var url:String = "http://item.taobao.com/item.htm?spm=a1z10.1.w5003-6411951231.70.xHugg7&id=39338349357&scene=taobao_shop";
-			//var urls:Array = View.paramOne.getText().split(",");
+			var urls:Array = View.paramOne.getText().split(",");
 			//var urls:Array = ["http://item.taobao.com/item.htm?spm=a1z10.1.w5003-6411951231.70.xHugg7&id=39338349357&scene=taobao_shop",
 							//"http://item.taobao.com/item.htm?spm=a1z10.1.w5003-6411951231.3.i0hj6H&id=39321895752&scene=taobao_shop"];
-			var urls:Array = ["http://item.taobao.com/item.htm?spm=a1z10.4.w4004-6427366736.3.MAsvaz&id=39589934260"];
+			//var urls:Array = ["http://item.taobao.com/item.htm?spm=a1z10.4.w4004-6427366736.3.MAsvaz&id=39589934260"];
 			
 			if (urls.length > 0) {
 				for ( var i:int = 0; i < urls.length; ++i) {
