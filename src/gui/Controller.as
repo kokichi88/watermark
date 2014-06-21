@@ -142,7 +142,7 @@ package gui
 			var urls:Array = View.paramOne.getText().split(",");
 			//var urls:Array = ["http://item.taobao.com/item.htm?spm=a1z10.1.w5003-6411951231.70.xHugg7&id=39338349357&scene=taobao_shop",
 							//"http://item.taobao.com/item.htm?spm=a1z10.1.w5003-6411951231.3.i0hj6H&id=39321895752&scene=taobao_shop"];
-			//var urls:Array = ["http://item.taobao.com/item.htm?spm=a1z10.4.w4004-6427366736.3.MAsvaz&id=39589934260"];
+			//var urls:Array = ["http://item.taobao.com/item.htm?spm=a1z10.1.w5003-6411951231.1.XKAlFT&id=39630657954&scene=taobao_shop"];
 			
 			if (urls.length > 0) {
 				for ( var i:int = 0; i < urls.length; ++i) {
@@ -267,6 +267,7 @@ package gui
 			for ( var i:int = 0; i < ret.length; ++i) {
 				var e:Element = ret[i];
 				if (e.attributeMap.hasOwnProperty("align")) {
+					row.is700Mode = true;
 					row.loadImage(e.attributeMap["src"]);
 				}else {
 					row.loadImage(e.attributeMap["alt"]);	
