@@ -6,6 +6,7 @@ package ext
 	import flash.display.JPEGEncoderOptions;
 	import flash.display.LoaderInfo;
 	import flash.events.Event;
+	import flash.events.IOErrorEvent;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.net.URLRequest;
@@ -81,10 +82,16 @@ package ext
 		public function loadImage(url:String):void {
 			var imageLoader:ExLoader = new ExLoader();
 			imageLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, onCompLoadImageFoxExport);
+			imageLoader.contentLoaderInfo.addEventListener(IOErrorEvent.NETWORK_ERROR, onLoadError);
 			imageLoader.load(new URLRequest(url));
 			imageLoader.refUrl = picNeededLoad.toString();
 			trace("refUrl", url, picNeededLoad);
 			++picNeededLoad;
+		}
+		
+		private function onLoadError(e:IOErrorEvent):void 
+		{
+			throw new Error("download " + picUrl + " error ");
 		}
 		
 		private function onCompLoadImageFoxExport(e:Event):void 
